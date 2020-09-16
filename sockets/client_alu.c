@@ -17,7 +17,7 @@ int main(int argc, char **argv){
 	memset(&name, 0, sizeof(name));
 
 	if (argc != 2) {
-		fprintf(stderr, "uso: %s ip\n", argv[0]);
+		fprintf(stderr, "uso: %s ip\n", argv[0]); 
 		exit(1);
 	}
 
@@ -37,11 +37,15 @@ int main(int argc, char **argv){
 	name.sin_port = htons(PORT);
 
 	//COMPLETAR: conectar el socket
-
+	connect(s, (struct sockaddr *) &name, sizeof(name));
 
 	//COMPLETAR: Recibir mensaje de bienvenida y ponerlo en bufrecv
-
-	printf("Bienvenida: %s\n",bufrecv);
+	if((r =recv(s, bufrecv, MSGLEN, 0))== -1 ){
+	   fprintf(stderr, "No se conecto, error\n");
+	   exit(1); 	
+	}
+	bufrecv[r] = '\0'; 
+	printf("Bienvenida: %s",bufrecv);
 
 	for (;;) {
 		printf("[%s]> ", argv[1]);
@@ -56,10 +60,21 @@ int main(int argc, char **argv){
 			break;
 		}
 		//COMPLETAR: Enviar el mensaje
-
-		//COMPLETAR: ecibir mensajes hasta que envie  CMDSE
+		if (send(s, bufsend,w,0) != w){
+			fprintf(stderr, "Fallo al mandar mensajes\n");
+	   		exit(1); 	
+		}	
+		//COMPLETAR: escribir mensajes hasta que envie CMDSE
+		while(1){
+			r =recv(s, bufrecv, MSGLEN, 0);
+			if(strncmp(bufrecv,CMDSEP,r) == 0 ){
+				break;
+			}
+			bufrecv[r] = '\0';
+			printf("%s\n",bufrecv );
+		}
 	}
-
+	printf("Terminamos de ejecutar, chau! \n");
 	free(bufsend);
 	close(s);
 
